@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "st_test.hpp"
+// #include "st_edge.hpp"
+#include "st_vertex.hpp"
 
 // Eigen
 #include <Eigen/Dense>
@@ -64,22 +65,33 @@ int main(int argc, char** argv) {
 #endif
 
     // example_3 graph
-    // 创建一个有5个顶点的有向图
-    Graph<int> g(5);
+        
+    // // 创建有向图对象
+    // using MyGraph = Graph<EdgeList<Edge<0, 1>, Edge<0, 4>, Edge<1, 2>, Edge<1, 3>, Edge<1, 4>, Edge<2, 3>, Edge<3, 4>>>;
+    // MyGraph graph;
 
-    // 插入边
-    g.addEdge(0, 1);
-    g.addEdge(0, 4);
-    g.addEdge(1, 2);
-    g.addEdge(1, 3);
-    g.addEdge(2, 3);
-    g.addEdge(3, 4);
+    // // 打印邻接表
+    // graph.printGraph();
 
-    std::cout << "Graph edges:" << std::endl;
-    g.printGraph();
+    // // 获取指定边的前驱顶点和后继顶点
+    // cout << "边 <1, 2> 的前驱顶点：" << MyGraph::getPredecessor<2>() << endl;
+    // cout << "边 <1, 2> 的后继顶点：" << MyGraph::getSuccessor<1>() << endl;
 
-    std::cout << "BFS Traversal starting from vertex 0:" << std::endl;
-    g.bfs(0);
+
+    // 创建有向图对象
+    using MyGraph = Graph<Vertex<0>, Vertex<1>, Vertex<2>, Vertex<3>, Vertex<4>,
+                          Edge<0, 1>, Edge<0, 4>, Edge<1, 2>, Edge<1, 3>, Edge<1, 4>, Edge<2, 3>, Edge<3, 4>>;
+
+    // 使用已创建的有向图对象
+    MyGraph graph;
+
+    // 打印邻接表
+    graph.printGraph();
+
+    // 获取指定顶点的入度和出度
+    cout << "顶点 2 的入度：" << graph.getInDegree<2>() << endl;
+    cout << "顶点 2 的出度：" << graph.getOutDegree<2>() << endl;
+
 
     return 0;
 }
