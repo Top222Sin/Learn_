@@ -35,7 +35,6 @@ while [ 1 ]; do
         echo $PATH
         toolchain_file=toolchains/aarch64-none-linux-gnu.toolchain.cmake
         install_path=install
-
         break;
     elif [ "$BOARD_NAME" = "ATK"  ] ; then
         echo "ATK"
@@ -44,18 +43,14 @@ while [ 1 ]; do
         export PATH=$TOOLCHAINS/libexec/gcc/arm-none-linux-gnueabihf/9.2.1:$PATH
         toolchain_file=toolchains/arm-9.2-none-linux-gnueabihf.toolchain.cmake
         install_path=install
-
         break;
-
     elif [ "$BOARD_NAME" = "ANDROID"  ] ; then
         echo "ATK"
-        TOOLCHAINS=/home/tool/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64
+        TOOLCHAINS=/home/jyang/tools/android-ndk-r26c/toolchains/llvm/prebuilt/linux-x86_64
         export PATH=$TOOLCHAINS/bin:$PATH
-        toolchain_file=/home/tool/android-ndk-r26b/build/cmake/android.toolchain.cmake
+        toolchain_file=/home/jyang/tools/android-ndk-r26c/build/cmake/android.toolchain.cmake
         install_path=install
-
         break;
-
     else
         print_target_menu
         read -p "Please choose target board: " cho
@@ -87,9 +82,7 @@ cd $BOARD_NAME
 cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
-    -Dncnn_DIR=ThirdLibs/ncnn/install/lib/cmake/ncnn \
-    -Dopencv_DIR=ThirdLibs/opencv/install/lib/cmake/opencv4 \
-    -Dnlopt_DIR=ThirdLibs/nlopt/install/lib/cmake/nlopt \
+    -Dopencv_DIR=ThirdLibs/OpenCV/install/lib/cmake/opencv5 \
     ../..
 make
 cmake --install . --prefix install >> install_log

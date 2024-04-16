@@ -8,18 +8,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)       # 关闭编译器特定的扩展，使用标
 
 
 find_package(Threads REQUIRED)
-find_package(ncnn REQUIRED)
-include(${nlopt_DIR}/NLoptConfig.cmake)
+# find_package(ncnn REQUIRED)
+# include(${nlopt_DIR}/NLoptConfig.cmake)
 
 
-message(STATUS "nlopt_DIR: ${nlopt_DIR}")
-message(STATUS "NLOPT_INCLUDE_DIRS: ${NLOPT_INCLUDE_DIRS}")
-message(STATUS "NLOPT_LIBRARY_DIRS: ${NLOPT_LIBRARY_DIRS}")
+# message(STATUS "nlopt_DIR: ${nlopt_DIR}")
+# message(STATUS "NLOPT_INCLUDE_DIRS: ${NLOPT_INCLUDE_DIRS}")
+# message(STATUS "NLOPT_LIBRARY_DIRS: ${NLOPT_LIBRARY_DIRS}")
 
 include(${opencv_DIR}/OpenCVConfig.cmake)
-message(STATUS "opencv_DIR: ${opencv_DIR}")
-message(STATUS "OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
-message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
+# message(STATUS "opencv_DIR: ${opencv_DIR}")
+# message(STATUS "OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
+# message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
 
 if("${OpenCV_LIBS}" STREQUAL "")
     set(OpenCV_FOUND FALSE)
@@ -37,18 +37,18 @@ message(STATUS "EIGEN_INCLUDE_DIR: ${EIGEN_INCLUDE_DIR}")
 
 set(headers
     ${EIGEN_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
     )
 
 set(sources
     ./src/st_test.cpp
     )
 
-include_directories(${NLOPT_INCLUDE_DIRS} ${headers} ${OpenCV_INCLUDE_DIRS})
+include_directories( ${headers})
 
 add_executable(testDemo ${headers} ${sources})
 
-target_link_libraries(testDemo PUBLIC Threads::Threads ${NLOPT_LIBRARIES})
-target_link_libraries(testDemo PRIVATE m ncnn)
+target_link_libraries(testDemo PUBLIC Threads::Threads )
 
 if(OpenCV_FOUND)
     target_link_libraries(testDemo PRIVATE ${OpenCV_LIBS})
