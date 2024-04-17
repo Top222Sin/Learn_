@@ -4,85 +4,73 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
-using namespace std;
-
-// 顶点的结构体模板
-template <int Index>
-struct Vertex {
-    static const int index = Index;
-};
-
-// 边的结构体模板
-template <int Src, int Dest>
-struct Edge {
-    static const int source = Src;
-    static const int destination = Dest;
-};
-
-// 边的列表模板
-template <typename... Edges>
-struct EdgeList {};
-
-// 边的列表递归模板
-template <typename Edge, typename... Edges>
-struct EdgeList<Edge, Edges...> {
-    static void addEdge(vector<vector<int>>& adjList) {
-        adjList[Edge::source].push_back(Edge::destination);
-        EdgeList<Edges...>::addEdge(adjList);
-    }
-};
-
-// 边的列表递归终止条件
-template <>
-struct EdgeList<> {
-    static void addEdge(vector<vector<int>>& adjList) {}
-};
-
-// 有向图类模板
-template <typename... Vertices, typename... Edges>
-class Graph {
-private:
-    static const int V = sizeof...(Vertices); // 结点数量
-    vector<vector<int>> adjList; // 邻接表
-
+template<typename T>
+class DirectedGraph {
 public:
-    // 构造函数
-    Graph() {
-        adjList.resize(V);
-        EdgeList<Edges...>::addEdge(adjList);
+    struct Vertex {
+        T data; // 顶点数据
+        std::vector<Vertex*> outgoingEdges; // 存储从该顶点出发的有向边的目标顶点
+    };
+
+    // 添加顶点
+    void addVertex(const T& value) {
+        vertices.push_back(new Vertex{value});
+    }
+
+    // 添加有向边，假设顶点已经存在
+    void addEdge(Vertex* source, Vertex* destination) {
+        source->outgoingEdges.push_back(destination);
+    }
+
+    // 删除有向边
+    bool removeEdge(Vertex* source, Vertex* destination) {
+        auto it = std::find(source->outgoingEdges.begin(), source->outgoingEdges.end(), destination);
+        if (it != source->outgoingEdges.end()) {
+            source->outgoingEdges.erase(it);
+            return true;
+        }
+        return false;
+    }
+
+    // 删除顶点及其关联的边
+    void removeVertex(Vertex* vertexToRemove) {
+        // 需要先删除所有指向该顶点的边（此处未实现）
+        // ...
+        auto it = std::find_if(vertices.begin(), vertices.end(), [vertexToRemove](const Vertex* v) { return v == vertexToRemove; });
+        if (it != vertices.end()) {
+            delete *it;
+            vertices.erase(it);
+        }
     }
 
     // 打印邻接表
     void printGraph() {
-        for (int i = 0; i < V; ++i) {
-            cout << "顶点 " << i << " 的邻接表：";
-            for (int dest : adjList[i]) {
-                cout << " -> " << dest;
+        for (const auto& vertex : vertices) {
+            std::cout << "顶点 " << vertex->data << " 的邻接顶点：";
+            for (const auto& edge : vertex->outgoingEdges) {
+                std::cout << edge->data << " ";
             }
-            cout << endl;
+            std::cout << std::endl;
         }
     }
 
-    // 获取指定顶点的入度
-    template <int Index>
-    constexpr int getInDegree() {
-        int inDegree = 0;
-        for (int i = 0; i < V; ++i) {
-            for (int dest : adjList[i]) {
-                if (dest == Index) {
-                    ++inDegree;
-                }
-            }
-        }
-        return inDegree;
-    }
+    // // 获取指定边的前驱顶点
+    // template<T value>
+    // static T getPredecessor() {
+    //     return Edge<value>::predecessor;
+    // }
 
-    // 获取指定顶点的出度
-    template <int Index>
-    constexpr int getOutDegree() {
-        return adjList[Index].size();
-    }
+    // // 获取指定边的后继顶点
+    // template<T value>
+    // static T getSuccessor() {
+    //     return Edge<value>::successor;
+    // }
+
+
+
+    std::vector<Vertex*> vertices; // 顶点容器
 };
 
 

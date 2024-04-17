@@ -1,7 +1,8 @@
 #include <iostream>
 
 // #include "st_edge.hpp"
-#include "st_vertex.hpp"
+// #include "st_vertex.hpp"
+#include "st_base_graph.hpp"
 
 // Eigen
 #include <Eigen/Dense>
@@ -78,20 +79,30 @@ int main(int argc, char** argv) {
     // cout << "边 <1, 2> 的后继顶点：" << MyGraph::getSuccessor<1>() << endl;
 
 
-    // 创建有向图对象
-    using MyGraph = Graph<Vertex<0>, Vertex<1>, Vertex<2>, Vertex<3>, Vertex<4>,
-                          Edge<0, 1>, Edge<0, 4>, Edge<1, 2>, Edge<1, 3>, Edge<1, 4>, Edge<2, 3>, Edge<3, 4>>;
+    DirectedGraph<int> graph;
 
-    // 使用已创建的有向图对象
-    MyGraph graph;
+    // 添加顶点
+    graph.addVertex(0);
+    graph.addVertex(1);
+    graph.addVertex(2);
+    graph.addVertex(3);
 
-    // 打印邻接表
+    // 添加边
+    graph.addEdge(0, 1);
+    graph.addEdge(0, 2);
+    graph.addEdge(1, 2);
+    graph.addEdge(2, 3);
+
+    // 打印图
     graph.printGraph();
 
-    // 获取指定顶点的入度和出度
-    cout << "顶点 2 的入度：" << graph.getInDegree<2>() << endl;
-    cout << "顶点 2 的出度：" << graph.getOutDegree<2>() << endl;
+    // 获取某个节点的前一个顶点和后一个顶点
+    int vertexIndex = 2;
+    int previous = graph.getPreviousVertex(vertexIndex);
+    int next = graph.getNextVertex(vertexIndex);
 
+    cout << "Previous vertex of vertex " << vertexIndex << ": " << previous << endl;
+    cout << "Next vertex of vertex " << vertexIndex << ": " << next << endl;
 
     return 0;
 }
