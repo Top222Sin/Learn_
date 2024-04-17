@@ -4,7 +4,8 @@
 // #include "st_graph_pipline.hpp"
 // #include "st_base_graph.hpp"
 // #include "st_graph_pipline_template.hpp"
-#include "st_test.hpp"
+// #include "st_test.hpp"
+#include "st_test_traits.hpp"
 
 // Eigen
 #include <Eigen/Dense>
@@ -226,6 +227,7 @@ int main(int argc, char** argv) {
     delete outputModule;
 #endif
 
+#if 0
     // #include "st_test.hpp"
     ConcreteModule<int, std::string> module1;
     ConcreteModule<std::string, bool> module2;
@@ -245,6 +247,17 @@ int main(int argc, char** argv) {
     std::cout << "Result from module 2: " << (result2 ? "true" : "false") << std::endl;
     std::cout << "Result from module 3: " << (result3 ? "true" : "false") << std::endl;
 
+#endif
+
+    // #include "st_test_traits.hpp"
+    ConcreteModule<TypeA, SomeOutputType> moduleA;
+    ConcreteModule<TypeB, SomeOtherOutputType> moduleB;
+
+    TypeA inputA = {10};
+    TypeB inputB = {3.14f};
+
+    moduleA.process(inputA);
+    moduleB.process(inputB);
 
     return 0;
 }
