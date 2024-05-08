@@ -17,14 +17,80 @@
 // OpenCV
 #include <opencv2/opencv.hpp>
 
+// benchmark
+#include <benchmark/benchmark.h>
+
 using namespace std;
 using namespace Eigen;
 using namespace cv;
+
+// 测试的函数，计算从1到n的整数和
+int Sum(int n) {
+  int sum = 0;
+  for (int i = 1; i <= n; ++i) {
+    sum += i;
+  }
+  return sum;
+}
+
+// 使用BENCHMARK宏定义测试用例
+static void BM_Sum(benchmark::State& state) {
+  int n = state.range(0);               // 获取测试范围参数
+  for (auto _ : state) {                // 运行测试
+    benchmark::DoNotOptimize(Sum(n));   // 告诉编译器不要优化掉Sum的调用
+  }
+}
+
+// 定义测试用例的参数范围
+BENCHMARK(BM_Sum)->Arg(10000);
+
+
+// 修改后的矩阵乘法函数，现在返回一个Matrix4d类型的临时对象
+Eigen::Matrix4d MatrixMultiply(const Eigen::Matrix4d& mat) {
+  // 使用Eigen提供的矩阵乘法
+//   return mat.leftCols<3>() * mat.rightCols<3>();
+    return mat * mat;
+}
+
+// 使用benchmark库测试MatrixMultiply函数
+static void BM_MatrixMultiply(benchmark::State& state) {
+  // 创建一个4x4的矩阵用于测试
+  Eigen::Matrix4d mat = Eigen::Matrix4d::Random();
+
+  // 这个循环将被自动重复多次
+  for (auto _ : state) {
+    // 基准测试库提供了一个方式来告诉编译器不要优化掉接下来的操作
+    // 这里我们使用MatrixMultiply的返回值来避免编译器优化
+    benchmark::DoNotOptimize(MatrixMultiply(mat));
+  }
+  
+  // 报告每秒可以执行的矩阵乘法次数
+  state.counters["Matrix Multiplies per second"] = benchmark::Counter(
+    static_cast<double>(state.iterations()), benchmark::Counter::kIsRate);
+}
+
+// 注册测试
+BENCHMARK(BM_MatrixMultiply);
 
 int main(int argc, char** argv) {
 
     // example_0
     cout << "Hello, World!" << endl;
+
+    // 初始化benchmark库
+    benchmark::Initialize(&argc, argv);
+    if (benchmark::ReportUnrecognizedArguments(argc, argv)) 
+        return 1;
+    // 运行测试
+    benchmark::RunSpecifiedBenchmarks();
+    // 关闭benchmark库
+    benchmark::Shutdown();
+
+    // benchmark::Initialize(&argc, argv);
+    // if (benchmark::ReportUnrecognizedArguments(argc, argv)) 
+    //     return 1;
+    // benchmark::RunSpecifiedBenchmarks();
+    // benchmark::Shutdown();
 
     // example_1 eigen
 #if 0
@@ -249,6 +315,7 @@ int main(int argc, char** argv) {
 
 #endif
 
+#if 0
     // #include "st_test_traits.hpp"
     ConcreteModule<TypeA, SomeOutputType> moduleA;
     ConcreteModule<TypeB, SomeOtherOutputType> moduleB;
@@ -258,6 +325,7 @@ int main(int argc, char** argv) {
 
     moduleA.process(inputA);
     moduleB.process(inputB);
+#endif
 
     return 0;
 }

@@ -83,6 +83,7 @@ cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
     -Dopencv_DIR=ThirdLibs/OpenCV/install/lib/cmake/opencv5 \
+    -Dbenchmark_DIR=ThirdLibs/benchmark/install/lib/cmake/benchmark \
     ../..
-make
+make -j8
 cmake --install . --prefix install >> install_log

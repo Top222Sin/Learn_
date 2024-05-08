@@ -8,10 +8,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)       # 关闭编译器特定的扩展，使用标
 
 
 find_package(Threads REQUIRED)
+find_package(benchmark REQUIRED)
+
+
 # find_package(ncnn REQUIRED)
 # include(${nlopt_DIR}/NLoptConfig.cmake)
-
-
 # message(STATUS "nlopt_DIR: ${nlopt_DIR}")
 # message(STATUS "NLOPT_INCLUDE_DIRS: ${NLOPT_INCLUDE_DIRS}")
 # message(STATUS "NLOPT_LIBRARY_DIRS: ${NLOPT_LIBRARY_DIRS}")
@@ -48,7 +49,7 @@ include_directories( ${headers})
 
 add_executable(testDemo ${headers} ${sources})
 
-target_link_libraries(testDemo PUBLIC Threads::Threads )
+target_link_libraries(testDemo PUBLIC Threads::Threads benchmark::benchmark)
 
 if(OpenCV_FOUND)
     target_link_libraries(testDemo PRIVATE ${OpenCV_LIBS})
