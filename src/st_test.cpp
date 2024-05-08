@@ -42,7 +42,7 @@ static void BM_Sum(benchmark::State& state) {
 }
 
 // 定义测试用例的参数范围
-BENCHMARK(BM_Sum)->Arg(10000);
+BENCHMARK(BM_Sum)->Arg(5000);
 
 
 // 修改后的矩阵乘法函数，现在返回一个Matrix4d类型的临时对象
@@ -60,7 +60,7 @@ static void BM_MatrixMultiply(benchmark::State& state) {
   // 这个循环将被自动重复多次
   for (auto _ : state) {
     // 基准测试库提供了一个方式来告诉编译器不要优化掉接下来的操作
-    // 这里我们使用MatrixMultiply的返回值来避免编译器优化
+    // 这里我们使用MatrixMultiply的返回值来避免编译器优化 
     benchmark::DoNotOptimize(MatrixMultiply(mat));
   }
   
@@ -70,7 +70,7 @@ static void BM_MatrixMultiply(benchmark::State& state) {
 }
 
 // 注册测试
-BENCHMARK(BM_MatrixMultiply);
+BENCHMARK(BM_MatrixMultiply)->Args({1, 2, 3, 4});
 
 int main(int argc, char** argv) {
 
