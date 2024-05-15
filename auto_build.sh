@@ -86,4 +86,5 @@ cmake \
     -Dbenchmark_DIR=ThirdLibs/benchmark/install/lib/cmake/benchmark \
     ../..
 make -j8
+make cppcheck
 cmake --install . --prefix install >> install_log

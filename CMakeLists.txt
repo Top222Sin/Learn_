@@ -67,4 +67,23 @@ target_include_directories(testDemo PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_D
 target_include_directories(
   testDemo PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
+# 假设你的项目源文件存放在 src 目录
+set(CPP_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
+
+# 查找项目中所有的源文件
+file(GLOB_RECURSE ALL_SOURCE_FILES ${CPP_SOURCE_DIR}/*.cpp ${CPP_SOURCE_DIR}/*.hpp)
+
+# 添加一个自定义目标来运行 Cppcheck
+add_custom_target(
+    cppcheck
+    COMMAND cppcheck
+    --enable=all    # 启用所有检查
+    --std=c++20     # 指定 C++ 标准
+    --verbose       # 输出详细信息
+    --force         # 强制检查所有配置
+    --output-file=${CMAKE_BINARY_DIR}/cppcheck_results.txt  # 输出结果到文件
+    ${ALL_SOURCE_FILES}
+    COMMENT "Running Cppcheck on all source files."
+)
+
 
