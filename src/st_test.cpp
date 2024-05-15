@@ -74,7 +74,6 @@ BENCHMARK(BM_MatrixMultiply)->Args({1, 2, 3, 4});
 
 int main(int argc, char** argv) {
 
-
     // example_0
     cout << "Hello, World!" << endl;
 

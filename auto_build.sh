@@ -80,11 +80,12 @@ cd $BUILD_DIR
 mkdir -p $BOARD_NAME
 cd $BOARD_NAME
 cmake \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
     -Dopencv_DIR=ThirdLibs/OpenCV/install/lib/cmake/opencv5 \
     -Dbenchmark_DIR=ThirdLibs/benchmark/install/lib/cmake/benchmark \
     ../..
 make -j8
 make cppcheck
+make valgrind
 cmake --install . --prefix install >> install_log

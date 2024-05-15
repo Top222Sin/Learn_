@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)          # 设置 C++ 标准为 C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # 确保编译器支持 C++20
 set(CMAKE_CXX_EXTENSIONS OFF)       # 关闭编译器特定的扩展，使用标准 C++
 
+add_compile_options(-g)
 
 find_package(Threads REQUIRED)
 find_package(benchmark REQUIRED)
@@ -84,6 +85,14 @@ add_custom_target(
     --output-file=${CMAKE_BINARY_DIR}/cppcheck_results.txt  # 输出结果到文件
     ${ALL_SOURCE_FILES}
     COMMENT "Running Cppcheck on all source files."
+)
+
+
+add_custom_target(
+    valgrind
+    COMMAND valgrind --tool=memcheck --leak-check=full --log-file=valgrind_output.txt $<TARGET_FILE:testDemo>
+    DEPENDS testDemo
+    COMMENT "Running Valgrind on testDemo and outputting to valgrind_output.txt"
 )
 
 
