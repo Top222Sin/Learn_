@@ -2,14 +2,37 @@ cmake_minimum_required(VERSION 3.16.0)
 
 project(testDemo VERSION 1.0)
 
-set(CMAKE_CXX_STANDARD 20)          # 设置 C++ 标准为 C++20
-set(CMAKE_CXX_STANDARD_REQUIRED ON) # 确保编译器支持 C++20
-set(CMAKE_CXX_EXTENSIONS OFF)       # 关闭编译器特定的扩展，使用标准 C++
+# Global CMake variables are set here
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-g)
 
 find_package(Threads REQUIRED)
 find_package(benchmark REQUIRED)
+
+
+# Enable testing
+enable_testing()
+
+# Set paths to GTest libraries and include directories
+set(GTEST_ROOT "ThirdLibs/gtest/install")  # Set this to the path where GTest is located
+set(GTEST_INCLUDE_DIR "${GTEST_ROOT}/include")
+set(GTEST_LIB_DIR "${GTEST_ROOT}/lib")
+
+# Find GTest libraries manually
+find_library(GTEST_LIBRARY gtest HINTS ${GTEST_LIB_DIR})
+find_library(GTEST_MAIN_LIBRARY gtest_main HINTS ${GTEST_LIB_DIR})
+
+# Include directories
+include_directories(${GTEST_INCLUDE_DIR})
+
+# Check if the libraries are found
+if(NOT GTEST_LIBRARY OR NOT GTEST_MAIN_LIBRARY)
+  message(FATAL_ERROR "Could not find GTest libraries")
+endif()
 
 
 # find_package(ncnn REQUIRED)
@@ -39,18 +62,24 @@ message(STATUS "EIGEN_INCLUDE_DIR: ${EIGEN_INCLUDE_DIR}")
 
 set(headers
     ${EIGEN_INCLUDE_DIR}
+    ${GTEST_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/src
     )
 
 set(sources
-    ./src/st_test.cpp
+    # ./src/st_test.cpp
+    ./src/st_test_gtest.cpp
     )
 
 include_directories( ${headers})
 
 add_executable(testDemo ${headers} ${sources})
 
-target_link_libraries(testDemo PUBLIC Threads::Threads benchmark::benchmark)
+target_link_libraries(testDemo PUBLIC Threads::Threads benchmark::benchmark ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
+
+
+# Add test
+add_test(NAME testDemo COMMAND testDemo)
 
 if(OpenCV_FOUND)
     target_link_libraries(testDemo PRIVATE ${OpenCV_LIBS})
@@ -68,31 +97,65 @@ target_include_directories(testDemo PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_D
 target_include_directories(
   testDemo PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
-# 假设你的项目源文件存放在 src 目录
-set(CPP_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 
-# 查找项目中所有的源文件
-file(GLOB_RECURSE ALL_SOURCE_FILES ${CPP_SOURCE_DIR}/*.cpp ${CPP_SOURCE_DIR}/*.hpp)
+# # 假设你的项目源文件存放在 src 目录
+# set(CPP_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 
-# 添加一个自定义目标来运行 Cppcheck
-add_custom_target(
-    cppcheck
-    COMMAND cppcheck
-    --enable=all    # 启用所有检查
-    --std=c++20     # 指定 C++ 标准
-    --verbose       # 输出详细信息
-    --force         # 强制检查所有配置
-    --output-file=${CMAKE_BINARY_DIR}/cppcheck_results.txt  # 输出结果到文件
-    ${ALL_SOURCE_FILES}
-    COMMENT "Running Cppcheck on all source files."
-)
+# # 查找项目中所有的源文件
+# file(GLOB_RECURSE ALL_SOURCE_FILES ${CPP_SOURCE_DIR}/*.cpp ${CPP_SOURCE_DIR}/*.hpp)
+
+# # 添加一个自定义目标来运行 Cppcheck
+# add_custom_target(
+#     cppcheck
+#     COMMAND cppcheck
+#     --enable=all    # 启用所有检查
+#     --std=c++20     # 指定 C++ 标准
+#     --verbose       # 输出详细信息
+#     --force         # 强制检查所有配置
+#     --output-file=${CMAKE_BINARY_DIR}/cppcheck_results.txt  # 输出结果到文件
+#     ${ALL_SOURCE_FILES}
+#     COMMENT "Running Cppcheck on all source files."
+# )
 
 
-add_custom_target(
-    valgrind
-    COMMAND valgrind --tool=memcheck --leak-check=full --log-file=valgrind_output.txt $<TARGET_FILE:testDemo>
-    DEPENDS testDemo
-    COMMENT "Running Valgrind on testDemo and outputting to valgrind_output.txt"
-)
+# add_custom_target(
+#     valgrind
+#     COMMAND valgrind --tool=memcheck --leak-check=full --log-file=valgrind_output.txt $<TARGET_FILE:testDemo>
+#     DEPENDS testDemo
+#     COMMENT "Running Valgrind on testDemo and outputting to valgrind_output.txt"
+# )
 
+
+
+######################################################################################### start 使用 FetchContent 模块
+# cmake_minimum_required(VERSION 3.10)
+
+# # Project name
+# project(MyProject)
+
+# # Enable testing
+# enable_testing()
+
+# # Include FetchContent module
+# include(FetchContent)
+
+# # Download and configure GoogleTest
+# FetchContent_Declare(
+#   googletest
+#   GIT_REPOSITORY https://github.com/google/googletest.git
+#   GIT_TAG release-1.11.0
+# )
+
+# FetchContent_MakeAvailable(googletest)
+
+# # Add your source files and test files
+# add_executable(MyTest src/main.cpp)
+
+# # Link GoogleTest to your test executable
+# target_link_libraries(MyTest gtest gtest_main)
+
+# # Add test
+# add_test(NAME MyTest COMMAND MyTest)
+
+######################################################################################### end 使用 FetchContent 模块
 
