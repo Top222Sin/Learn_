@@ -84,7 +84,6 @@ cmake \
     -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
     -Dopencv_DIR=ThirdLibs/OpenCV/install/lib/cmake/opencv5 \
     -Dbenchmark_DIR=ThirdLibs/benchmark/install/lib/cmake/benchmark \
-    -Dgtest_DIR=ThirdLibs/gtest/install/lib/cmake/GTest \
     ../..
 make -j8
 # make cppcheck

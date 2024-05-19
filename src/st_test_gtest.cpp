@@ -80,6 +80,11 @@ TEST(MatrixMultiplyTest, HandlesDouble) {
     testMatrixMultiply<double>();
 }
 
+// 测试 float 类型的矩阵乘法
+TEST(MatrixMultiplyTest, HandlesFloat) {
+    testMatrixMultiply<double>();
+}
+
 
 
 int main(int argc, char** argv) {
