@@ -68,7 +68,8 @@ set(headers
 
 set(sources
     # ./src/st_test.cpp
-    ./src/st_test_gtest.cpp
+    # ./src/st_test_gtest.cpp
+    ./src/st_test_demasaic.cpp
     )
 
 include_directories( ${headers})
