@@ -9,6 +9,8 @@
 #include <cstdint>  // for uint16_t
 #include <functional>
 
+#include <numeric>
+
 using namespace std;
 
 int height = 1200;
@@ -161,74 +163,103 @@ float bilinear_interpolate(float x, float y, const std::vector<std::vector<float
 }
 
 
-// 二维插值函数，返回一个函数对象
-std::function<float(float, float)> interp2d(const std::vector<float>& x, const std::vector<float>& y, const std::vector<std::vector<float>>& current_pattern) {
-    return [=](float grid_x, float grid_y) {
-        // 寻找最近的四个点的索引
-        int x1 = static_cast<int>(grid_x);
-        int x2 = x1 + 1;
-        int y1 = static_cast<int>(grid_y);
-        int y2 = y1 + 1;
+// 生成插值函数的结构
+struct Interp2D {
+    std::vector<float> x;
+    std::vector<float> y;
+    std::vector<std::vector<float>> values;
 
-        // 边界处理
-        if (x2 >= current_pattern[0].size()) x2 = x1;
-        if (y2 >= current_pattern.size()) y2 = y1;
+    Interp2D(const std::vector<float>& x, const std::vector<float>& y, const std::vector<std::vector<float>>& values)
+        : x(x), y(y), values(values) {}
 
-        // 四个点的值
-        float Q11 = current_pattern[y1][x1];
-        float Q12 = current_pattern[y1][x2];
-        float Q21 = current_pattern[y2][x1];
-        float Q22 = current_pattern[y2][x2];
+    float operator()(float xi, float yi) const {
+        int ix = std::upper_bound(x.begin(), x.end(), xi) - x.begin() - 1;
+        int iy = std::upper_bound(y.begin(), y.end(), yi) - y.begin() - 1;
 
-        // 双线性插值
-        float R1 = ((x2 - grid_x) * Q11 + (grid_x - x1) * Q12);
-        float R2 = ((x2 - grid_x) * Q21 + (grid_x - x1) * Q22);
-        return ((y2 - grid_y) * R1 + (grid_y - y1) * R2);
-    };
-}
+        if (ix < 0 || ix >= x.size() - 1 || iy < 0 || iy >= y.size() - 1) {
+            return 0; // 超出范围的情况，返回0或者适当的值
+        }
 
+        float x1 = x[ix], x2 = x[ix + 1];
+        float y1 = y[iy], y2 = y[iy + 1];
 
-std::vector<std::vector<float>> demosaic(std::vector<std::vector<float>> img, std::pair<int, int> kernel_size = {6, 6}) {
+        float Q11 = values[iy][ix];
+        float Q12 = values[iy][ix + 1];
+        float Q21 = values[iy + 1][ix];
+        float Q22 = values[iy + 1][ix + 1];
+
+        float R1 = ((x2 - xi) * Q11 + (xi - x1) * Q12) / (x2 - x1);
+        float R2 = ((x2 - xi) * Q21 + (xi - x1) * Q22) / (x2 - x1);
+
+        return ((y2 - yi) * R1 + (yi - y1) * R2) / (y2 - y1);
+    }
+};
+
+// 主函数
+std::vector<std::vector<std::vector<float>>> demosaic(const std::vector<std::vector<float>>& img, std::pair<int, int> kernel_size = {6, 6}) {
+    std::cout << "demosaic::img.size: " << img.size() << " x " << img[0].size() << std::endl;
+
     // 填充图像
-    pad_with(img, kernel_size.first, kernel_size.second);
-    int H_pad = img.size();
-    int W_pad = img[0].size();
-    printf("demosaic::H_pad: %d, W_pad: %d\n", H_pad, W_pad);
+    std::vector<std::vector<float>> padded_img = img;
+    pad_with(padded_img, kernel_size.first, kernel_size.second);
+    int H_pad = padded_img.size();
+    int W_pad = padded_img[0].size();
+    std::cout << "H_pad: " << H_pad << std::endl;
+    std::cout << "W_pad: " << W_pad << std::endl;
+
+    std::vector<int> grid_x(W_pad - 2 * kernel_size.first);
+    std::vector<int> grid_y(H_pad - 2 * kernel_size.second);
+    std::iota(grid_x.begin(), grid_x.end(), kernel_size.first);
+    std::iota(grid_y.begin(), grid_y.end(), kernel_size.second);
+    printf("grid_x.size: %d, grid_y.size: %d\n", grid_x.size(), grid_y.size());
+
+    // 打印 grid_x 和 grid_y 的前20个元素
+    printf("grid_x: ");
+    for (int i = 0; i < 20; ++i) {
+        cout << grid_x[i] << " ";
+    }
+    cout << endl;
+
+    printf("grid_y: ");
+    for (int i = 0; i < 20; ++i) {
+        cout << grid_y[i] << " ";
+    }
+    cout << endl;
 
     // 初始化处理后的图像
-    std::vector<std::vector<float>> processed_img(H_pad - kernel_size.first + 1, std::vector<float>(W_pad - kernel_size.second + 1));
+    std::vector<std::vector<std::vector<float>>> processed_img(grid_y.size(), std::vector<std::vector<float>>(grid_x.size(), std::vector<float>(kernel_size.first * kernel_size.second)));
 
-    // 循环切片并进行插值
     for (int i = 0; i < kernel_size.first; ++i) {
         for (int j = 0; j < kernel_size.second; ++j) {
             std::vector<std::vector<float>> current_pattern;
-            std::vector<float> x;
-            std::vector<float> y;
 
-            // 切片
             for (int ki = i; ki < H_pad; ki += kernel_size.first) {
                 std::vector<float> row;
                 for (int kj = j; kj < W_pad; kj += kernel_size.second) {
-                    row.push_back(img[ki][kj]);
-                    if (ki == i) 
-                        x.push_back(kj);
-                    if (kj == j) 
-                        y.push_back(ki);
+                    row.push_back(padded_img[ki][kj]);
                 }
                 current_pattern.push_back(row);
-                printf("demosaic::current_pattern.size: %d x %d\n", current_pattern.size(), current_pattern[0].size());
             }
 
-            // // 插值
-            // auto interp_func = interp2d(x, y, current_pattern);
-            // for (int ki = 0; ki < processed_img.size(); ++ki) {
-            //     for (int kj = 0; kj < processed_img[0].size(); ++kj) {
-            //         processed_img[ki][kj] = interp_func(kj, ki);
-            //     }
-            // }
+            std::vector<float> x;
+            std::vector<float> y;
+            for (int kj = j; kj < W_pad; kj += kernel_size.second) {
+                x.push_back(kj);
+            }
+            for (int ki = i; ki < H_pad; ki += kernel_size.first) {
+                y.push_back(ki);
+            }
+
+            Interp2D interp_func(x, y, current_pattern);
+            for (int k = 0; k < grid_y.size(); ++k) {
+                for (int l = 0; l < grid_x.size(); ++l) {
+                    float xi = grid_x[l] + 0.5f;
+                    float yi = grid_y[k] + 0.5f;
+                    processed_img[k][l][i * kernel_size.second + j] = interp_func(xi, yi);
+                }
+            }
         }
     }
-    printf("demosaic::processed_img.size: %d x %d\n", processed_img.size(), processed_img[0].size());
 
     return processed_img;
 }
@@ -337,12 +368,12 @@ int main() {
     }
     cout << endl;
 
-    vector<vector<float>> processed_img = demosaic(img);
+    vector<vector<vector<float>>> processed_img = demosaic(img);
     printf("main::processed_img.size: %d x %d\n", processed_img.size(), processed_img[0].size());
 
     // // 对 processed_img 进行通道平均
-    // vector<vector<float>> averaged_img = average_channels(processed_img);
-    // save_to_raw(averaged_img, "/home/jyang/code/test_data/out_float.raw");
+    vector<vector<float>> averaged_img = average_channels(processed_img);
+    save_to_raw(averaged_img, "/home/jyang/code/test_data/out_float.raw");
 
     return 0;
 }
