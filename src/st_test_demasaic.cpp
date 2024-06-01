@@ -19,6 +19,66 @@ float calculate_slope(float x1, float y1, float x2, float y2) {
     return (y2 - y1) / (x2 - x1);
 }
 
+void pad_with_zero(vector<vector<float>>& array, int pad_width) {
+    int rows = array.size();
+    int cols = array[0].size();
+
+    // 创建一个新的填充后的图像数组，大小为 (rows + 2 * pad_width) x (cols + 2 * pad_width)
+    vector<vector<float>> padded_array(rows + 2 * pad_width, vector<float>(cols + 2 * pad_width, 0));
+
+    // 复制原始数组到填充后的数组中心
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            padded_array[i + pad_width][j + pad_width] = array[i][j];
+        }
+    }
+
+    // 用0填充完成的数组赋值回原始数组
+    array.swap(padded_array);
+}
+
+void reflect_pad(vector<vector<float>>& array, int pad_width) {
+    int rows = array.size();
+    int cols = array[0].size();
+
+    // 创建一个新的填充后的图像数组
+    vector<vector<float>> padded_array(rows + 2 * pad_width, vector<float>(cols + 2 * pad_width, 0));
+
+    // 复制原始数组到填充后的数组中心
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            padded_array[pad_width + i][pad_width + j] = array[i][j];
+        }
+    }
+
+    // 顶部填充（反射填充）
+    for (int i = 0; i < pad_width; ++i) {
+        for (int j = 0; j < cols + 2 * pad_width; ++j) {
+            padded_array[pad_width - 1 - i][j] = padded_array[2 * (pad_width - 1 - i) + 1 + pad_width][j];
+        }
+    }
+
+    // 底部填充（反射填充）
+    for (int i = rows + pad_width; i < rows + 2 * pad_width; ++i) {
+        for (int j = 0; j < cols + 2 * pad_width; ++j) {
+            padded_array[i][j] = padded_array[2 * (rows + pad_width - 1) - i][j];
+        }
+    }
+
+    // 左侧和右侧填充（反射填充）
+    for (int i = 0; i < rows + 2 * pad_width; ++i) {
+        for (int j = 0; j < pad_width; ++j) {
+            padded_array[i][pad_width - 1 - j] = padded_array[i][2 * (pad_width - 1 - j) + 1 + pad_width];
+        }
+        for (int j = cols + pad_width; j < cols + 2 * pad_width; ++j) {
+            padded_array[i][j] = padded_array[i][2 * (cols + pad_width - 1) - j];
+        }
+    }
+
+    // 用填充后的数组赋值回原始数组
+    array.swap(padded_array);
+}
+
 void pad_with(vector<vector<float>>& array, int pad_width) {
     int rows = array.size();
     int cols = array[0].size();
@@ -44,31 +104,26 @@ void pad_with(vector<vector<float>>& array, int pad_width) {
 
 float interpolate(const vector<vector<float>>& img, float x, float y) {
    
-    int x1 = floor(x);
-    int x2 = ceil(x);
-    int y1 = floor(y);
-    int y2 = ceil(y);
+    int x1 = std::floor(x);
+    int x2 = std::ceil(x);
+    int y1 = std::floor(y);
+    int y2 = std::ceil(y);
 
-    if (x1 == x2 && y1 == y2) {
-        return img[y1][x1];
-    } else if (x1 == x2) {
-        return img[y1][x1] + (y - y1) * calculate_slope(y1, img[y1][x1], y2, img[y2][x1]);
-    } else if (y1 == y2) {
-        return img[y1][x1] + (x - x1) * calculate_slope(x1, img[y1][x1], x2, img[y1][x2]);
-    } else {
-        float Q11 = img[y1][x1];
-        float Q12 = img[y2][x1];
-        float Q21 = img[y1][x2];
-        float Q22 = img[y2][x2];
-
-        float slope_y1 = calculate_slope(x1, Q11, x2, Q21);
-        float slope_y2 = calculate_slope(x1, Q12, x2, Q22);
-        float interpolated_y1 = Q11 + (x - x1) * slope_y1;
-        float interpolated_y2 = Q12 + (x - x1) * slope_y2;
-
-        float slope_x = calculate_slope(y1, interpolated_y1, y2, interpolated_y2);
-        return interpolated_y1 + (y - y1) * slope_x;
+    if (x1 < 0 || x2 >= img[0].size() || y1 < 0 || y2 >= img.size()) {
+        return 0; // Handle out-of-bounds cases
     }
+
+    float Q11 = img[y1][x1];
+    float Q12 = img[y2][x1];
+    float Q21 = img[y1][x2];
+    float Q22 = img[y2][x2];
+
+    float R1 = ((x2 - x) / (x2 - x1)) * Q11 + ((x - x1) / (x2 - x1)) * Q21;
+    float R2 = ((x2 - x) / (x2 - x1)) * Q12 + ((x - x1) / (x2 - x1)) * Q22;
+
+    float P = ((y2 - y) / (y2 - y1)) * R1 + ((y - y1) / (y2 - y1)) * R2;
+
+    return P;
 }
 
 
@@ -82,6 +137,15 @@ vector<vector<vector<float>>> demosaic(const vector<vector<float>>& img, pair<in
 
     vector<vector<float>> padded_img = img;
     pad_with(padded_img, kernel_size.first);
+    // pad_with_zero(padded_img, kernel_size.first);
+    // reflect_pad(padded_img, kernel_size.first);
+    
+    // 打印 img 前20个元素
+    printf("mademosaicin :: padded_img\n");
+    for (int i = 0; i < 20; ++i) {
+        cout << padded_img[0][i] << " ";
+    }
+    cout << endl;
 
     int H_pad = padded_img.size();
     int W_pad = padded_img[0].size();
@@ -100,6 +164,13 @@ vector<vector<vector<float>>> demosaic(const vector<vector<float>>& img, pair<in
             }
         }
     }
+
+    // 打印 processed_img 前20个元素
+    printf("mademosaicin :: processed_img\n");
+    for (int i = 0; i < 20; ++i) {
+        cout << processed_img[0][0][i] << " ";
+    }
+    cout << endl;
 
     return processed_img;
 }
@@ -122,6 +193,13 @@ vector<vector<float>> average_channels(const vector<vector<vector<float>>>& img)
         }
     }
 
+    // 打印 averaged_img 前20个元素
+    printf("average_channels :: averaged_img\n");
+    for (int i = 0; i < 20; ++i) {
+        cout << averaged_img[0][i] << " ";
+    }
+    cout << endl;
+
     return averaged_img;
 }
 
@@ -130,6 +208,13 @@ void save_to_raw(const vector<vector<float>>& img, const string& filename) {
     if (!file.is_open()) {
         throw runtime_error("Could not open file for writing");
     }
+
+    // 打印 img 前20个元素
+    printf("save_to_raw :: img\n");
+    for (int i = 0; i < 20; ++i) {
+        cout << img[0][i] << " ";
+    }
+    cout << endl;
 
     for (const auto& row : img) {
         file.write(reinterpret_cast<const char*>(row.data()), row.size() * sizeof(float));
@@ -157,6 +242,14 @@ int main() {
             img[i][j] = img_16[i * width + j];
         }
     }
+
+    // 打印 img 前20个元素
+    printf("main :: img\n");
+    for (int i = 0; i < 20; ++i) {
+        cout << img[0][i] << " ";
+    }
+    cout << endl;
+
 
     vector<vector<vector<float>>> processed_img = demosaic(img);
     vector<vector<float>> averaged_img = average_channels(processed_img);
