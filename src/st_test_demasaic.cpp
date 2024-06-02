@@ -43,7 +43,7 @@ int H = array.size();
         }
     }
 
-    W += 2 * pad_width;
+    // W += 2 * pad_width;
     printf("pad_with::H after padding: %d, W after padding: %d\n", H, W);
 }
 
@@ -138,8 +138,8 @@ std::vector<std::vector<std::vector<float>>> demosaic(const std::vector<std::vec
             Interp2D interp_func(x, y, current_pattern);
             for (int k = 0; k < grid_y.size(); ++k) {
                 for (int l = 0; l < grid_x.size(); ++l) {
-                    float xi = grid_x[l] + 0.5f;
-                    float yi = grid_y[k] + 0.5f;
+                    float xi = grid_x[l] + 0.0f;
+                    float yi = grid_y[k] + 0.0f;
                     processed_img[k][l][i * kernel_size.second + j] = interp_func(xi, yi);
                 }
             }
@@ -253,7 +253,9 @@ int main() {
     }
     cout << endl;
 
-    vector<vector<vector<float>>> processed_img = demosaic(img);
+
+    std::pair<int, int> kernel_size = {6, 6};
+    vector<vector<vector<float>>> processed_img = demosaic(img, kernel_size);
     printf("main::processed_img.size: %d x %d\n", processed_img.size(), processed_img[0].size());
 
     // // 对 processed_img 进行通道平均
